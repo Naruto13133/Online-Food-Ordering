@@ -1,6 +1,7 @@
 package com.atm.response;
 
-import com.atm.enums.ROLES;
+
+import com.atm.enums.Role;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,6 +16,6 @@ public class AuthResponse {
 	
 	private String message;
 	
-	private ROLES role;
+	private Role role;
 	
 }

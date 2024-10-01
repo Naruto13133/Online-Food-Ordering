@@ -15,6 +15,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrimaryKeyJoinColumn;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,7 +33,8 @@ public class Restaurent {
 	
 	private String cuisineType;
 	
-	@OneToOne
+//	@PrimaryKeyJoinColumn()
+	@OneToOne(cascade = CascadeType.PERSIST)
 	private UserEntity owner;
 	
 	private String name;
@@ -42,7 +44,7 @@ public class Restaurent {
 	@OneToOne
 	private Address address;
 	
-	@OneToOne
+	@OneToOne(cascade = CascadeType.PERSIST)
 	private ContactInformation constactInformantion;
 	
 	private String openingHourse;

@@ -12,7 +12,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.atm.enums.ROLES;
+
+import com.atm.enums.Role;
 import com.atm.model.UserEntity;
 import com.atm.repository.UserRepository;
 
@@ -31,7 +32,7 @@ public class CustomUserDetailsService implements UserDetailsService{
 			throw new UsernameNotFoundException("User Not with email "+email);
 			
 		}else {
-			ROLES role = user.getRole();
+			Role role = user.getRole();
 			List<GrantedAuthority> auth = new ArrayList<>();
 			auth.add(new SimpleGrantedAuthority(role.toString()));
 			UserDetails test = new User(user.getEmail(), user.getPassword(), auth);

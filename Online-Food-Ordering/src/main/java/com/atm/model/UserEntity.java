@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.atm.dto.RestaurentDto;
-import com.atm.enums.ROLES;
 
+import com.atm.enums.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -42,7 +42,7 @@ public class UserEntity {
 	private String password;
 	
 	
-	private ROLES role = ROLES.CUSTOMER;
+	private Role role = Role.CUSTOMER;
 	
 	@JsonIgnore
 	@OneToMany(cascade = CascadeType.ALL, mappedBy  = "customer")

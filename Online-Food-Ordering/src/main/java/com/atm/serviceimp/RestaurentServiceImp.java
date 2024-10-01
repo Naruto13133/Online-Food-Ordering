@@ -6,6 +6,8 @@ import java.util.Optional;
 
 import org.apache.coyote.Request;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.atm.dto.RestaurentDto;
 import com.atm.model.Address;
@@ -17,6 +19,7 @@ import com.atm.repository.UserRepository;
 import com.atm.request.CreateRestaurentRequest;
 import com.atm.service.RestaurentService;
 
+@Component
 public class RestaurentServiceImp implements RestaurentService {
 
 	@Autowired
@@ -38,6 +41,7 @@ public class RestaurentServiceImp implements RestaurentService {
 	@Override
 	public Restaurent createRestaurent(CreateRestaurentRequest req, UserEntity user) {
 		
+		
 		Address address = AddressRepo.save(req.getAddress());
 		Restaurent restaurent = new Restaurent();
 		restaurent.setAddress(req.getAddress());
@@ -48,6 +52,7 @@ public class RestaurentServiceImp implements RestaurentService {
 		restaurent.setRegistrationDate(LocalDateTime.now());
 		restaurent.setOwner(user);
 		restaurent.setCuisineType(req.getCuisineType());
+		restaurentRepo.save(restaurent);
 		return restaurent;
 	}
 
@@ -157,9 +162,11 @@ public class RestaurentServiceImp implements RestaurentService {
 	@Override
 	public Restaurent updateRestaurentStatus(Long id) throws Exception {
 		// TODO Auto-generated method stub
+		
 		Restaurent res = restaurentRepo.findById(id).get();
 		 if (res != null) {
 			 res.setOpen(!res.isOpen());
+			 
 		 } 
 			else throw new Exception("Restaurent is not present !");
 		

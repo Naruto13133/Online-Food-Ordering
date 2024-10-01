@@ -22,7 +22,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.atm.config.JwtProvider;
-import com.atm.enums.ROLES;
+
+import com.atm.enums.Role;
 import com.atm.model.Cart;
 import com.atm.model.UserEntity;
 import com.atm.repository.CartRepository;
@@ -97,7 +98,7 @@ public class AuthController {
 		AuthResponse authResponse = new AuthResponse();
 		authResponse.setJwt(jwt);
 		authResponse.setMessage("Login Success");
-		authResponse.setRole(ROLES.valueOf(role));
+		authResponse.setRole(Role.valueOf(role));
 
 		return new ResponseEntity<>(authResponse,HttpStatus.OK);
 	}

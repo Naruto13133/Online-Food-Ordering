@@ -7,15 +7,21 @@ import java.util.List;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.cdi.Eager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
+
+import com.atm.service.CustomUserDetailsService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -28,9 +34,16 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
+@Eager
 @Component
 public class JwtTokenValidator extends OncePerRequestFilter {
+	
+	
+
+	
+	
+	
+	
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -50,6 +63,10 @@ public class JwtTokenValidator extends OncePerRequestFilter {
 				
 				String s  = c.getPayload().get("authorities",String.class);
 				
+				
+				
+				
+				
 				System.out.println("authorities>>>>>>>>>>>>>>>>>>>>>>>"+s);
 				
 //				String email = String.valueOf(c.get("email"));
@@ -67,8 +84,9 @@ public class JwtTokenValidator extends OncePerRequestFilter {
 //				String authorities = String.valueOf(claims.get("authorities"));
 
 				List<GrantedAuthority> grantedAuthorities = AuthorityUtils.commaSeparatedStringToAuthorityList(s);
+				UserDetails userDetail = new User(email, email, grantedAuthorities);
 				System.out.println("grantedAuthorities>>>>>>>>>>>>>>>"+grantedAuthorities.toString());
-				Authentication authentication = new UsernamePasswordAuthenticationToken(email, null, grantedAuthorities);
+				Authentication authentication = new UsernamePasswordAuthenticationToken(userDetail.getUsername(), null, userDetail.getAuthorities());
 				System.out.println("authentication>>>>>>>>>>>>>>>"+authentication.toString());
 				System.out.println("SecurityContextHolder.getContext()>>>>>>>>>>>>>"+SecurityContextHolder.getContext().toString());
 				SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -78,12 +96,13 @@ public class JwtTokenValidator extends OncePerRequestFilter {
 				throw new BadCredentialsException("invalid credential ...........");
 			}
 		}
-		try {
+//		try {
 		filterChain.doFilter(request, response);
-		}catch(Exception e){
-			e.printStackTrace();
+//		}
+//		catch(Exception e){
+//			e.printStackTrace();
 //			filterChain.doFilter(request, response);
-		}
+//		}
 	}
 
 }

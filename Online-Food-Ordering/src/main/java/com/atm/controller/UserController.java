@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.atm.model.UserEntity;
 import com.atm.service.UserService;
 import com.atm.serviceimp.UserServiceImp;
+
+import jakarta.annotation.security.RolesAllowed;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,7 +24,8 @@ public class UserController {
 
 	@Autowired
 	private UserService userService;
-	
+
+//	@RolesAllowed("RESTAURENT_OWNER")
 	@PostMapping("/profile")
 	private ResponseEntity<UserEntity> findUserByJwtToken( @RequestHeader("Authorization") String jwt) throws Exception{
 		UserEntity user = userService.findUserByJwtToken(jwt);
