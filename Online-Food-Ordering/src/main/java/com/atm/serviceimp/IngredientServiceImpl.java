@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.atm.model.IngredientCategory;
 import com.atm.model.IngredientItem;
@@ -12,6 +13,7 @@ import com.atm.repository.IngredientCategoryRepository;
 import com.atm.repository.IngredientItemRepository;
 import com.atm.service.IngredientService;
 
+@Service
 public class IngredientServiceImpl implements IngredientService {
 
 	@Autowired
@@ -73,7 +75,7 @@ public class IngredientServiceImpl implements IngredientService {
 	public List<IngredientItem> findrestaurentIngredients(Long restaurentId) throws Exception {
 		// TODO Auto-generated method stub
 		
-		return ingredientItemRepo.findByRestaurnetId(restaurentId);
+		return ingredientItemRepo.findByRestaurentId(restaurentId);
 	}
 
 	@Override

@@ -50,7 +50,7 @@ public class IngredientController {
 		return new ResponseEntity<>(item,HttpStatus.OK);
 	}
 	
-	@PutMapping("/{id}/stock}")
+	@PutMapping("/{id}/stock")
 	public ResponseEntity<IngredientItem> updateIngredientStock(
 			@PathVariable Long id,@RequestHeader("Authorization") String jwt
 			

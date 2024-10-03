@@ -2,11 +2,14 @@ package com.atm.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,6 +20,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+//@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name", "restaurent_id"}))
 public class Category {
 	
 
@@ -27,9 +31,9 @@ public class Category {
 	
 	private String name;
 	
-	@ManyToOne
-	@JsonIgnore
-	private Restaurent restaurent;
+//	@ManyToOne(cascade = CascadeType.ALL)
+//	@JsonIgnore
+	private Long restaurentId;
 	
 	
 

@@ -4,11 +4,13 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.atm.model.Address;
+import com.atm.model.Category;
 import com.atm.model.ContactInformation;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @NoArgsConstructor

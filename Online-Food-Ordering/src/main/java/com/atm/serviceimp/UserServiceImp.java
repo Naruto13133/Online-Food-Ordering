@@ -8,6 +8,8 @@ import com.atm.model.UserEntity;
 import com.atm.repository.UserRepository;
 import com.atm.service.UserService;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class UserServiceImp implements UserService {
 
@@ -18,6 +20,7 @@ public class UserServiceImp implements UserService {
 	private JwtProvider jwtProvider;
 	
 	@Override
+	@Transactional
 	public UserEntity findUserByJwtToken(String jwt) throws Exception {
 		
 		String email = jwtProvider.getEmailFromToken(jwt);

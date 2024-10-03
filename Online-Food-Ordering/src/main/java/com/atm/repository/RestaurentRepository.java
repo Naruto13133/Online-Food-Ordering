@@ -9,7 +9,7 @@ import com.atm.model.Restaurent;
 
 public interface RestaurentRepository extends JpaRepository<Restaurent, Long> {
 
-	Restaurent findByOwnerId(Long userId);
+	List<Restaurent> findByOwnerId(Long userId);
 	
 	@Query("SELECT r FROM Restaurent r WHERE lower(r.name) LIKE lower(concat('%',:query,'%')) "
 	        + "OR lower(r.cuisineType) LIKE lower(concat('%',:query,'%'))")

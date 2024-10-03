@@ -1,6 +1,9 @@
 package com.atm.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -14,8 +17,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.atm.model.Address;
 import com.atm.model.Restaurent;
 import com.atm.model.UserEntity;
+import com.atm.repository.AddressRepository;
 import com.atm.request.CreateRestaurentRequest;
 import com.atm.response.MessageResponse;
 import com.atm.service.UserService;
@@ -34,16 +39,35 @@ public class AdminRestaurentController {
 	@Autowired
 	private UserServiceImp userService;
 	
+	@Autowired
+	private AddressRepository addressRepo;
+	
 	
 	@PostMapping("/create")
-	private ResponseEntity<Restaurent> createRestaurent(
+	private ResponseEntity<?> createRestaurent(
 	        @RequestBody CreateRestaurentRequest createRestaurantReq,
 	        @RequestHeader("Authorization") String jwt) throws Exception {
 
-	    UserEntity user = userService.findUserByJwtToken(jwt);
-	    Restaurent res = resService.createRestaurent(createRestaurantReq, user);
+		 try {
+			 UserEntity user = userService.findUserByJwtToken(jwt);
+			  Restaurent res =  resService.createRestaurent(createRestaurantReq, user);
+			  return new ResponseEntity<>(res, HttpStatus.CREATED);
+	        } catch (Exception e) {
+	            // Log the exception
+	            e.printStackTrace(); 
 
-	    return new ResponseEntity<>(res, HttpStatus.CREATED);
+	            // Customize error response based on the exception type
+	            if (e instanceof DataIntegrityViolationException) { 
+	                return ResponseEntity.status(HttpStatus.CONFLICT)
+	                        .body("Error creating restaurant: Please use different Adrress." ); 
+	            } else {
+	                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                        .body("An unexpected error occurred.");
+	            }
+	        }
+	    
+	    
+	    
 	}
 
 	@PutMapping("/{id}")
@@ -95,11 +119,11 @@ public class AdminRestaurentController {
 	
 	
 	@GetMapping("/user")
-	private ResponseEntity<Restaurent> findRestaurentByUserId(
+	private ResponseEntity<List<Restaurent>> findRestaurentByUserId(
 	        @RequestHeader("Authorization") String jwt) throws Exception {
 
 	    UserEntity user = userService.findUserByJwtToken(jwt);
-	    Restaurent rest = resService.getRestaurentByUserId(user.getId());
+	    List<Restaurent> rest = resService.getRestaurentByUserId(user.getId());
 	    return new ResponseEntity<>(rest,HttpStatus.OK);
 	}
 

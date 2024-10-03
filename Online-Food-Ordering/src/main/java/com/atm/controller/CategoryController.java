@@ -1,5 +1,6 @@
 package com.atm.controller;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,21 +29,55 @@ public class CategoryController {
 	private UserServiceImp userService;
 	
 	@PostMapping("/admin/category")
-	public ResponseEntity<Category> createCategory(
+	public ResponseEntity<?> createCategory(
+			@RequestBody Category req,
+			@RequestHeader("Authorization") String jwt
+			) throws Exception{
+		try {
+		UserEntity user = userService.findUserByJwtToken(jwt);
+		Category category = categoryService.createCategoryForOneRestaurent(req.getName(),req.getId());
+		return new ResponseEntity<>(category, HttpStatus.OK);
+		}catch(Exception e) {
+			if(e instanceof SQLIntegrityConstraintViolationException) {
+		return new ResponseEntity<>("You already created the category for all your restaurenst.", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+			return new ResponseEntity<>("Something went wrong please contact the help desk!", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+	}
+	
+	@GetMapping("/category/restaurent")
+	public ResponseEntity<List<Category>> getCategoryByRestaurentId(
 			@RequestBody Category req,
 			@RequestHeader("Authorization") String jwt
 			) throws Exception{
 		UserEntity user = userService.findUserByJwtToken(jwt);
-		Category category = categoryService.createCategory(req.getName(),user.getId());
+		//here we use Category.Id field for setting the restaurnt id
+		List<Category> category = categoryService.findCategoryByRestaurentId(req.getId());
 		return new ResponseEntity<>(category, HttpStatus.OK);
 	}
 	
-	@GetMapping("/category/restaurent")
-	public ResponseEntity<List<Category>> getRestaurentCategory(
+	
+	@GetMapping("/category/restaurents")
+	public ResponseEntity<Category> getRestaurentByCategoryId(
+			@RequestBody Category req,
 			@RequestHeader("Authorization") String jwt
 			) throws Exception{
 		UserEntity user = userService.findUserByJwtToken(jwt);
-		List<Category> category = categoryService.findCategoryByRestaurentId(user.getId());
+		//here we use Category.Id field for setting the restaurnt id
+		Category category = categoryService.findCategoryById(req.getId());
+		return new ResponseEntity<>(category, HttpStatus.OK);
+	}
+	
+	
+	@GetMapping("/category/getAll")
+	public ResponseEntity<List<Category>> getAllCategory(
+			@RequestBody Category req,
+			@RequestHeader("Authorization") String jwt
+			) throws Exception{
+		UserEntity user = userService.findUserByJwtToken(jwt);
+		//here we use Category.Id field for setting the restaurnt id
+		List<Category> category = categoryService.getListOfCategory();
 		return new ResponseEntity<>(category, HttpStatus.OK);
 	}
 	

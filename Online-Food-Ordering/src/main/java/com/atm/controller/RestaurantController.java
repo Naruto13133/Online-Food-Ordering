@@ -2,6 +2,7 @@ package com.atm.controller;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -12,23 +13,29 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.atm.dto.RestaurentDto;
+import com.atm.model.Category;
 import com.atm.model.Restaurent;
 import com.atm.model.UserEntity;
+import com.atm.repository.CategoryRepository;
 import com.atm.request.CreateRestaurentRequest;
 import com.atm.response.MessageResponse;
 import com.atm.serviceimp.RestaurentServiceImp;
 import com.atm.serviceimp.UserServiceImp;
 
-@Controller
-@RestController("/api/restaurants")
-public class RestaurantController {
 
+@RestController
+@RequestMapping("/api/restaurants")
+public class RestaurantController {
+	
+	@Autowired
 	private RestaurentServiceImp resService;
 
+	@Autowired
 	private UserServiceImp userService;
 
 	@GetMapping("/search")
@@ -72,4 +79,17 @@ public class RestaurantController {
 		RestaurentDto dto = resService.addToFavorites(id, user);
 		return new ResponseEntity<>(dto, HttpStatus.OK);
 	}
+
+		@GetMapping("/category")
+	public ResponseEntity<List<Restaurent>> getRestaurentByCategory(
+			@RequestBody Category req,
+			@RequestHeader("Authorization") String jwt
+			) throws Exception{
+			System.out.println(req.toString());
+		UserEntity user = userService.findUserByJwtToken(jwt);
+		//here we use Category.Id field for setting the restaurnt id
+		List<Restaurent> category = resService.findByListOfCategory(req.getName());
+		return new ResponseEntity<>(category, HttpStatus.OK);
+	}
+	
 }

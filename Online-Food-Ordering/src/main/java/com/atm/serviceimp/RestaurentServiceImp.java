@@ -1,23 +1,33 @@
 package com.atm.serviceimp;
 
+import java.lang.reflect.Array;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.coyote.Request;
+import org.hibernate.boot.model.source.internal.hbm.CommaSeparatedStringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import com.atm.dto.RestaurentDto;
 import com.atm.model.Address;
+import com.atm.model.Category;
 import com.atm.model.Restaurent;
 import com.atm.model.UserEntity;
 import com.atm.repository.AddressRepository;
+import com.atm.repository.CategoryRepository;
 import com.atm.repository.RestaurentRepository;
 import com.atm.repository.UserRepository;
 import com.atm.request.CreateRestaurentRequest;
 import com.atm.service.RestaurentService;
+
+import jakarta.persistence.RollbackException;
+import jakarta.transaction.Transactional;
 
 @Component
 public class RestaurentServiceImp implements RestaurentService {
@@ -26,7 +36,7 @@ public class RestaurentServiceImp implements RestaurentService {
 	private RestaurentRepository restaurentRepo;
 	
 	@Autowired
-	private AddressRepository AddressRepo;
+	private AddressRepository addressRepo;
 	
 	@Autowired
 	private UserServiceImp userService;
@@ -34,25 +44,58 @@ public class RestaurentServiceImp implements RestaurentService {
 	@Autowired
 	private UserRepository userRepo;
 	
+	@Autowired
+	private CategoryRepository categoryRepo;
+	
 	
 	
 	
 	
 	@Override
+	 @Transactional
 	public Restaurent createRestaurent(CreateRestaurentRequest req, UserEntity user) {
 		
+		Category category = new Category();
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>"+req.getAddress().toString());
 		
-		Address address = AddressRepo.save(req.getAddress());
+		
+		
 		Restaurent restaurent = new Restaurent();
-		restaurent.setAddress(req.getAddress());
+		restaurent.setCuisineType(req.getCuisineType());
 		restaurent.setConstactInformantion(req.getConstactInfo());
+		restaurent.setAddress(req.getAddress());
 		restaurent.setDiscription(req.getDiscription());
 		restaurent.setName(req.getName());
 		restaurent.setOpeningHourse(req.getOpinghours());
 		restaurent.setRegistrationDate(LocalDateTime.now());
 		restaurent.setOwner(user);
-		restaurent.setCuisineType(req.getCuisineType());
-		restaurentRepo.save(restaurent);
+		
+//		restaurent.getCuisineType().setName(req.getCuisineType());
+		
+		Restaurent rest = new Restaurent();
+		
+		try {
+		rest =restaurentRepo.save(restaurent);
+		
+
+		Address address = new Address();
+		address = addressRepo.findById(rest.getAddress().getId()).get();
+		address.setRestaurentId(rest.getId());
+		address.setAddress(req.getAddress().getAddress());
+		
+		addressRepo.save(address);
+		
+		
+		category.setRestaurentId(rest.getId());
+		category.setName(rest.getCuisineType());
+		
+		categoryRepo.save(category);
+		System.out.println(rest);
+		}
+		catch(Exception e){
+			
+			e.printStackTrace();
+		}
 		return restaurent;
 	}
 
@@ -60,60 +103,121 @@ public class RestaurentServiceImp implements RestaurentService {
 	public Restaurent updateRestaurent(Long restaurentId, CreateRestaurentRequest updatedRestaurent) throws Exception {
 	    Optional<Restaurent> existingRestaurentOpt = restaurentRepo.findById(restaurentId);
 
-	    if (!existingRestaurentOpt.isPresent()) {
-	        throw new Exception("Restaurant not found.");
-	    }
-
-	    Restaurent existingRestaurent = existingRestaurentOpt.get();
+//	    Address address = addressRepo.findByRestaurentId(restaurentId);
+	    List<Category> cats = categoryRepo.findByRestaurentId(restaurentId);
+	    List<String> categoryNames = cats.stream()
+                .map(Category::getName)
+                .collect(Collectors.toList());
+	    String commaSeparatedNames = String.join(", ", categoryNames);
+	   boolean changesOccured = false;
 	    
-	    // Update the restaurant fields only if the provided value is not null and different from the current one
-	    if (updatedRestaurent.getName() != null && !updatedRestaurent.getName().equals(existingRestaurent.getName())) {
-	        existingRestaurent.setName(updatedRestaurent.getName());
-	    }
+	    	if (!existingRestaurentOpt.isPresent()) {
+	    		throw new Exception("Restaurant not found.");
+	    	}
+	    Restaurent existingRestaurent = existingRestaurentOpt.get();
+	    	// Update the restaurant fields only if the provided value is not null and different from the current one
+	    	if (updatedRestaurent.getName() != null && !updatedRestaurent.getName().equals(existingRestaurent.getName())) {
+	    		existingRestaurent.setName(updatedRestaurent.getName());
+	    		changesOccured = true;
+	    	}
 
-	    if (updatedRestaurent.getDiscription() != null && !updatedRestaurent.getDiscription().equals(existingRestaurent.getDiscription())) {
-	        existingRestaurent.setDiscription(updatedRestaurent.getDiscription());
-	    }
+	    	if (updatedRestaurent.getDiscription() != null && !updatedRestaurent.getDiscription().equals(existingRestaurent.getDiscription())) {
+	    		existingRestaurent.setDiscription(updatedRestaurent.getDiscription());
+	    		changesOccured = true;
+	    	}
 
-	    if (updatedRestaurent.getCuisineType() != null && !updatedRestaurent.getCuisineType().equals(existingRestaurent.getCuisineType())) {
-	        existingRestaurent.setCuisineType(updatedRestaurent.getCuisineType());
-	    }
+	    	if (updatedRestaurent.getCuisineType() != null && !updatedRestaurent.getCuisineType().contains(commaSeparatedNames)) {
+	    		existingRestaurent.setCuisineType(updatedRestaurent.getCuisineType());
+	    		int i = -1;
+	    		for(Category c : cats) {
+	    			if(!c.getName().equals(updatedRestaurent.getCuisineType()) ){
+	    				break; 
+	    			}else {
+	    				i++;
+	    			}
+	    		}
+	    		System.out.println(cats.size());
+	    		Category category = new Category();
+	    		if(cats.size() == i+1) {
+	    			category.setId(restaurentId);
+	    			category.setName(updatedRestaurent.getCuisineType());
+	    			categoryRepo.save(category);
+	    		}
+	    		else if(i > -1) {
+	    			category = cats.get(i);
+	    			category.setName(updatedRestaurent.getCuisineType());
+	    			categoryRepo.save(category);
+	    		}
+	    		changesOccured = true;
+	    	}
+	    	if (updatedRestaurent.getOpinghours() != null && !updatedRestaurent.getOpinghours().equals(existingRestaurent.getOpeningHourse())) {
+	    		existingRestaurent.setOpeningHourse(updatedRestaurent.getOpinghours());
+	    		changesOccured = true;
+	    	}
+	    	if (updatedRestaurent.getImages() != null && !updatedRestaurent.getImages().equals(existingRestaurent.getImages())) {
+	    		existingRestaurent.setImages(updatedRestaurent.getImages());
+	    		changesOccured = true;
+	    	}
+//	    	
+//	    	System.out.println(updatedRestaurent.getAddress() != null &&
+//	    		!updatedRestaurent.getAddress()
+//	    		.getAddress()
+//	    		.equalsIgnoreCase(address.getAddress()));
+	    	// Update the address if it's provided and different
 
-	    if (updatedRestaurent.getOpinghours() != null && !updatedRestaurent.getOpinghours().equals(existingRestaurent.getOpeningHourse())) {
-	        existingRestaurent.setOpeningHourse(updatedRestaurent.getOpinghours());
-	    }
+	    	Address existingAddress = addressRepo.findByRestaurentId(restaurentId);	    	
+	    	if (updatedRestaurent.getAddress() != null) {
+	    		
+	    		    // ... other code ...
 
-	    if (updatedRestaurent.getImages() != null && !updatedRestaurent.getImages().equals(existingRestaurent.getImages())) {
-	        existingRestaurent.setImages(updatedRestaurent.getImages());
-	    }
+	    		    if (updatedRestaurent.getAddress() != null && 
+	    		        !updatedRestaurent.getAddress().getAddress().equalsIgnoreCase(existingAddress.getAddress())) {
 
-	    // Update the address if it's provided and different
-	    if (updatedRestaurent.getAddress() != null && !updatedRestaurent.getAddress().equals(existingRestaurent.getAddress())) {
-	        Address updatedAddress = AddressRepo.save(updatedRestaurent.getAddress());
-	        existingRestaurent.setAddress(updatedAddress);
-	    }
+	    		        // Check if the new address already exists for another restaurant
+	    		        if (addressRepo.existsByAddressAndRestaurentIdNot(
+	    		                updatedRestaurent.getAddress().getAddress(), restaurentId)) {
+	    		            throw new Exception("Address already exists for another restaurant."); 
+	    		        }
 
-	    // Update the contact information if it's provided and different
-	    if (updatedRestaurent.getConstactInfo() != null && !updatedRestaurent.getConstactInfo().equals(existingRestaurent.getConstactInformantion())) {
-	        existingRestaurent.setConstactInformantion(updatedRestaurent.getConstactInfo());
-	    }
-
-	    // Save and return the updated restaurant
-	    return restaurentRepo.save(existingRestaurent);
+	    		        existingAddress.setAddress(updatedRestaurent.getAddress().getAddress());
+	    		        addressRepo.save(existingAddress);
+	    		        changesOccured = true;
+	    		    }
+	    	    // ... update other address fields if needed ...
+	    	}
+	    	// Update the contact information if it's provided and different
+	    	if (updatedRestaurent.getConstactInfo() != null && !updatedRestaurent.getConstactInfo().equals(existingRestaurent.getConstactInformantion())) {
+	    		existingRestaurent.setConstactInformantion(updatedRestaurent.getConstactInfo());
+	    		changesOccured = true;
+	    	}
+	    	// Save and return the updated restaurant
+	    	if(changesOccured == true)
+	    		return restaurentRepo.save(existingRestaurent);
+	    	else
+	    		throw new Exception("Nothing needs to be change!");
 	}
 
 
 	
     // Delete a restaurant by ID
     @Override
+    @Transactional
     public void deleteRestaurent(Long restaurentId) throws Exception {
-        Optional<Restaurent> existingRestaurentOpt = restaurentRepo.findById(restaurentId);
-        
-        if (!existingRestaurentOpt.isPresent()) {
+    	Restaurent existingRestaurentOpt = new Restaurent();
+    	try {
+    	 existingRestaurentOpt = restaurentRepo.findById(restaurentId).get();
+        }catch(Exception e) {
+        	e.printStackTrace();
+        }
+        if (existingRestaurentOpt == null) {
             throw new Exception("Restaurant not found.");
         }
-
-        restaurentRepo.delete(existingRestaurentOpt.get());
+        categoryRepo.deleteByRestaurentId(restaurentId);
+        if(addressRepo.existsByRestaurentId(restaurentId)) {
+        	System.out.println(addressRepo.findByRestaurentId(restaurentId));
+        	addressRepo.deleteByRestaurentId(restaurentId);
+        }
+        restaurentRepo.delete(existingRestaurentOpt);
     }
 
 	@Override
@@ -135,7 +239,7 @@ public class RestaurentServiceImp implements RestaurentService {
 	}
 
 	@Override
-	public Restaurent getRestaurentByUserId(Long userId) throws Exception {
+	public List<Restaurent> getRestaurentByUserId(Long userId) throws Exception {
 		// TODO Auto-generated method stub
 		return restaurentRepo.findByOwnerId(userId);
 	}
@@ -172,5 +276,28 @@ public class RestaurentServiceImp implements RestaurentService {
 		
 		return restaurentRepo.save(res);
 	}
+
+	@Override
+	public List<Restaurent> findByListOfCategory(String categoriesString) throws Exception {
+
+	    String[] categoryArray = categoriesString.split(",");
+	    List<String> categoryList = Arrays.stream(categoryArray)
+	            .map(String::trim)
+	            .collect(Collectors.toList());
+
+	    List<Restaurent> restaurants = new ArrayList<>();
+	    for (String categoryName : categoryList) {
+	        List<Category> categories = categoryRepo.findByName(categoryName); // Find categories by name
+	        for (Category category : categories) {
+	        	Restaurent c = restaurentRepo.findById(category.getRestaurentId()).get();
+	        	restaurants.add(c);
+	             // Add the restaurant associated with the category
+	        }
+	    }
+
+	    return restaurants;
+	}
+	
+	
 
 }

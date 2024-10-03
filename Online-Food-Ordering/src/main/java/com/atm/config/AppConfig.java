@@ -43,7 +43,7 @@ public class AppConfig {
             corsConfig.addAllowedHeader("*");
             corsConfig.setAllowCredentials(true);
             corsConfig.setExposedHeaders(Arrays.asList("Authorization"));
-            corsConfig.setMaxAge(3600L);
+            corsConfig.setMaxAge(36000L);
             return corsConfig;
         };
     }

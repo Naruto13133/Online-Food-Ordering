@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.stereotype.Service;
 
 import com.atm.model.Cart;
 import com.atm.model.CartItem;
@@ -18,6 +19,7 @@ import com.atm.repository.FoodRepo;
 import com.atm.request.AddCartItemReq;
 import com.atm.service.CartService;
 
+@Service
 public class CartServiceImpl implements CartService {
 
 	@Autowired
@@ -142,6 +144,7 @@ public class CartServiceImpl implements CartService {
 	public Cart findCartByUserId(String jwt) throws Exception {
 		UserEntity user = userService.findUserByJwtToken(jwt);
 		Cart cart = cartRepo.findByCustomerId(user.getId());
+		cart.setTotal(calculateCartTotal(cart));
 		return cart;
 	}
 

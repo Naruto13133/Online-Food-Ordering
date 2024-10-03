@@ -20,9 +20,13 @@ public interface RestaurentService {
 	
 	public Restaurent findRestaurentById(Long Id) throws Exception;
 	
-	public Restaurent getRestaurentByUserId(Long userId)  throws Exception;
+	public List<Restaurent> getRestaurentByUserId(Long userId)  throws Exception;
 	
 	public RestaurentDto addToFavorites(Long restaurentId, UserEntity user) throws Exception;
 	
 	public Restaurent updateRestaurentStatus(Long id) throws Exception;
+
+	public List<Restaurent> findByListOfCategory(String categories) throws Exception;
+
+	
 }
